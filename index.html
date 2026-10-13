@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>購物欲望與必要性評估小工具</title>
+    <!-- 引入 Tailwind CSS 進行美化 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f7f5f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #4a4543;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .morandi-card {
+            background-color: #ffffff;
+            border: 1px solid #e6e2d8;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+        }
+        .btn-primary {
+            background-color: #7d8471;
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .btn-primary:hover {
+            background-color: #6a715f;
+        }
+        /* 自定義checkbox卡片樣式 */
+        .check-card {
+            border: 1.5px solid #e6e2d8;
+            transition: all 0.2s;
+        }
+        input[type="checkbox"]:checked + div .check-card,
+        .check-card.active {
+            border-color: #7d8471;
+            background-color: #f3f4f0;
+        }
+    </style>
+</head>
+<body class="py-6 px-3 sm:px-6 lg:px-8 max-w-md mx-auto sm:max-w-3xl">
+    <div class="space-y-5">
+        <!-- 標題區 -->
+        <div class="text-center space-y-1">
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#5c5552]">✨ 購物欲望與必要性評估</h1>
+            <p class="text-xs text-[#8c827d]">釐清真實需求，守護你的荷包與預算！</p>
+        </div>
+
+        <!-- 預算設定區 -->
+        <div class="morandi-card p-4 sm:p-5 space-y-3">
+            <h2 class="text-sm font-semibold text-[#5c5552] flex items-center gap-2">
+                <span>🎯</span> 預算狀態總覽
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                <div>
+                    <label class="block text-xs font-medium text-[#7a706b] mb-1">總預算上限 (NT$)</label>
+                    <input type="number" id="budgetInput" placeholder="例如：10000" class="w-full px-3 py-2 border border-[#d9d3c9] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7d8471] text-sm bg-white">
+                </div>
+                <div class="bg-[#f0ede6] p-3 rounded-xl text-sm flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-[#8c827d]">目前總花費：<span id="totalCost" class="font-bold text-[#5c5552]">NT$ 0</span></p>
+                        <p class="text-xs text-[#8c827d] mt-0.5">剩餘預算：<span id="remainingBudget" class="font-bold text-[#7d8471]">NT$ 0</span></p>
+                    </div>
+                    <div id="budgetAlert" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-green-100 text-green-700">預算充足</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增與評估表單 (優化互動介面) -->
+        <div class="morandi-card p-4 sm:p-5 space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-sm font-semibold text-[#5c5552] flex items-center gap-2">
+                    <span>📝</span> 新增想買的東西
+                </h2>
+                <span id="scoreBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">評分: 0/4</span>
+            </div>
+
+            <form id="itemForm" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-medium text-[#7a706b] mb-1">物品名稱</label>
+                        <input type="text" id="itemName" required placeholder="例如：新外套" class="w-full px-3 py-2 border border-[#d9d3c9] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7d8471] text-sm bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-[#7a706b] mb-1">單價 (NT$)</label>
+                        <input type="number" id="itemPrice" required min="1" placeholder="例如：1500" class="w-full px-3 py-2 border border-[#d9d3c9] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7d8471] text-sm bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-[#7a706b] mb-1">數量</label>
+                        <input type="number" id="itemQty" required min="1" value="1" class="w-full px-3 py-2 border border-[#d9d3c9] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7d8471] text-sm bg-white">
+                    </div>
+                </div>
+
+                <!-- 優化後的 4 題互動勾選卡片 -->
+                <div class="space-y-2">
+                    <p class="text-xs font-bold text-[#6b625d]">💡 理性審核問題（勾選符合的項目）：</p>
+                    <div class="grid grid-cols-1 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="q" value="1" class="hidden peer">
+                            <div class="check-card p-2.5 rounded-xl text-xs text-[#6b625d] flex items-center justify-between bg-white peer-checked:border-[#7d8471] peer-checked:bg-[#f2f4ef]">
+                                <span>1. 這個東西近期內（一個月內）有馬上要用到的急迫性嗎？</span>
+                                <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[10px] text-transparent peer-checked:bg-[#7d8471] peer-checked:text-white peer-checked:border-[#7d8471]">✓</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="q" value="2" class="hidden peer">
+                            <div class="check-card p-2.5 rounded-xl text-xs text-[#6b625d] flex items-center justify-between bg-white peer-checked:border-[#7d8471] peer-checked:bg-[#f2f4ef]">
+                                <span>2. 扣除日常必要開銷後，這筆花費完全不會造成財務壓力嗎？</span>
+                                <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[10px] text-transparent peer-checked:bg-[#7d8471] peer-checked:text-white peer-checked:border-[#7d8471]">✓</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="q" value="3" class="hidden peer">
+                            <div class="check-card p-2.5 rounded-xl text-xs text-[#6b625d] flex items-center justify-between bg-white peer-checked:border-[#7d8471] peer-checked:bg-[#f2f4ef]">
+                                <span>3. 我手邊沒有其他功能完全相同或替代的物品嗎？</span>
+                                <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[10px] text-transparent peer-checked:bg-[#7d8471] peer-checked:text-white peer-checked:border-[#7d8471]">✓</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="q" value="4" class="hidden peer">
+                            <div class="check-card p-2.5 rounded-xl text-xs text-[#6b625d] flex items-center justify-between bg-white peer-checked:border-[#7d8471] peer-checked:bg-[#f2f4ef]">
+                                <span>4. 我已經為這個東西考慮超過 3 天以上，不是一時衝動嗎？</span>
+                                <span class="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[10px] text-transparent peer-checked:bg-[#7d8471] peer-checked:text-white peer-checked:border-[#7d8471]">✓</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 px-4 btn-primary rounded-xl font-medium text-sm shadow-sm flex items-center justify-center gap-2">
+                    <span>✨ 加入待買清單並分析</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- 待買清單列表 -->
+        <div class="morandi-card p-4 sm:p-5 space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-sm font-semibold text-[#5c5552] flex items-center gap-2">
+                    <span>📋</span> 評估與待買清單
+                </h2>
+                <button id="clearAllBtn" class="text-xs text-red-500 hover:text-red-700 underline">清空全部記錄</button>
+            </div>
+            <div id="itemList" class="space-y-2.5">
+                <!-- 動態生成的清單會在這裡顯示 -->
+                <p id="emptyMessage" class="text-center text-xs text-[#9c928d] py-6">目前沒有紀錄，趕快在上方新增想買的東西吧！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const itemForm = document.getElementById('itemForm');
+        const itemNameInput = document.getElementById('itemName');
+        const itemPriceInput = document.getElementById('itemPrice');
+        const itemQtyInput = document.getElementById('itemQty');
+        const itemListDiv = document.getElementById('itemList');
+        const emptyMessage = document.getElementById('emptyMessage');
+        const totalCostSpan = document.getElementById('totalCost');
+        const remainingBudgetSpan = document.getElementById('remainingBudget');
+        const budgetInput = document.getElementById('budgetInput');
+        const budgetAlert = document.getElementById('budgetAlert');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const checkboxes = itemForm.querySelectorAll('input[type="checkbox"]');
+
+        let items = JSON.parse(localStorage.getItem('shopping_items')) || [];
+        let budget = localStorage.getItem('shopping_budget') || '';
+
+        if (budget) budgetInput.value = budget;
+
+        // 即時計算勾選分數並更新提示徽章
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateScoreBadge);
+        });
+
+        function updateScoreBadge() {
+            let count = 0;
+            checkboxes.forEach(cb => { if (cb.checked) count++; });
+            scoreBadge.textContent = `評分: ${count}/4 項`;
+            if (count >= 3) {
+                scoreBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium';
+            } else if (count === 2) {
+                scoreBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium';
+            } else {
+                scoreBadge.className = 'text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-medium';
+            }
+        }
+
+        render();
+
+        budgetInput.addEventListener('input', (e) => {
+            budget = e.target.value;
+            localStorage.setItem('shopping_budget', budget);
+            updateBudgetStatus();
+        });
+
+        itemForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = itemNameInput.value.trim();
+            const price = parseFloat(itemPriceInput.value);
+            const qty = parseInt(itemQtyInput.value);
+
+            let score = 0;
+            checkboxes.forEach(cb => { if (cb.checked) score++; });
+
+            let badgeText = '';
+            let badgeClass = '';
+            if (score >= 3) {
+                badgeText = '🔥 極度需要';
+                badgeClass = 'bg-emerald-100 text-emerald-800';
+            } else if (score === 2) {
+                badgeText = '💡 實用想要';
+                badgeClass = 'bg-amber-100 text-amber-800';
+            } else {
+                badgeText = '🛑 一時衝動 (建議冷卻)';
+                badgeClass = 'bg-rose-100 text-rose-800';
+            }
+
+            const newItem = {
+                id: Date.now(),
+                name,
+                price,
+                qty,
+                total: price * qty,
+                badgeText,
+                badgeClass,
+                score
+            };
+
+            items.unshift(newItem); // 新增的排在最前面
+            saveAndRender();
+            itemForm.reset();
+            itemQtyInput.value = '1';
+            checkboxes.forEach(cb => cb.checked = false);
+            updateScoreBadge();
+        });
+
+        window.deleteItem = function(id) {
+            items = items.filter(item => item.id !== id);
+            saveAndRender();
+        }
+
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('確定要清空所有紀錄嗎？')) {
+                items = [];
+                saveAndRender();
+            }
+        });
+
+        function saveAndRender() {
+            localStorage.setItem('shopping_items', JSON.stringify(items));
+            render();
+        }
+
+        function render() {
+            itemListDiv.innerHTML = '';
+            
+            if (items.length === 0) {
+                itemListDiv.appendChild(emptyMessage);
+                emptyMessage.style.display = 'block';
+            } else {
+                emptyMessage.style.display = 'none';
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-[#fcfbfa] border border-[#eae5dd] rounded-xl gap-2 text-sm';
+                    card.innerHTML = `
+                        <div class="space-y-1 w-full sm:w-auto">
+                            <div class="flex items-center justify-between sm:justify-start gap-2">
+                                <span class="font-bold text-[#5c5552]">${escapeHtml(item.name)}</span>
+                                <span class="text-xs px-2 py-0.5 rounded-md font-medium ${item.badgeClass}">${item.badgeText}</span>
+                            </div>
+                            <p class="text-xs text-[#8c827d]">單價 $${item.price.toLocaleString()} × ${item.qty} = 總計 <span class="font-semibold text-[#5c5552]">NT$ ${item.total.toLocaleString()}</span> (符合 ${item.score}/4 項)</p>
+                        </div>
+                        <button onclick="deleteItem(${item.id})" class="text-xs text-red-400 hover:text-red-600 self-end sm:self-center px-2 py-1 bg-white border border-gray-200 rounded-lg">刪除</button>
+                    `;
+                    itemListDiv.appendChild(card);
+                });
+            }
+
+            updateBudgetStatus();
+        }
+
+        function updateBudgetStatus() {
+            const total = items.reduce((sum, item) => sum + item.total, 0);
+            totalCostSpan.textContent = `NT$ ${total.toLocaleString()}`;
+
+            const budgetVal = parseFloat(budgetInput.value);
+            if (!isNaN(budgetVal)) {
+                const remaining = budgetVal - total;
+                remainingBudgetSpan.textContent = `NT$ ${remaining.toLocaleString()}`;
+                if (remaining < 0) {
+                    budgetAlert.textContent = '⚠️ 已超出預算！';
+                    budgetAlert.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-red-100 text-red-700';
+                } else {
+                    budgetAlert.textContent = '✨ 預算充足';
+                    budgetAlert.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-green-100 text-green-700';
+                }
+            } else {
+                remainingBudgetSpan.textContent = 'NT$ 未設定';
+                budgetAlert.textContent = '未設預算';
+                budgetAlert.className = 'text-xs font-bold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600';
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
